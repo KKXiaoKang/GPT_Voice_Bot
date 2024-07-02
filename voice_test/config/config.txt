@@ -13,3 +13,5 @@ synthesis_api_secret = ODY3ZmQwYTdhZGQxM2Q1NDIxNTQ3YzI1
 audio_input_device_index = 18
 audio_output_device_index = 14
 energy_threashold = 400
+
+zhipuai_api_key = d36a30c392305de3735e51ecdb536b42.o0GUdJVlEKH3lSNi
