@@ -205,10 +205,12 @@ def main():
         count = 0
         audio = pyaudio.PyAudio()
         player = AudioPlayer()
-
-        time.sleep(2)
-
+        
+        player.playSoundList("speak")
+        player.waitForPlayer()
+        
         with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
+            print("------------------- you can say something ------------------- ")
             if count == 0:
                 
                 print("[Log] Audio initialization compelete.")
@@ -223,8 +225,6 @@ def main():
 
                 print("[Start ChatGPT]")
         
-            player.playSoundList("speak")
-            player.waitForPlayer()
             # question = input("> ")
             question = " "
             question = voiceToText(audio=audio, mic=mic)
