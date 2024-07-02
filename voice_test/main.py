@@ -11,10 +11,11 @@ import os
 import configparser
 import pygame
 import time
+
 from voice_record import recordVoice
-from audio_tool import wav2pcm
 from voice_recognition import voiceRecognition
 from voice_synthesis import voiceSynthesis
+from audio_tool import wav2pcm
 from audio_device import listAudioDevice
 from audio_player import AudioPlayer
 from zhipuai import ZhipuAI
