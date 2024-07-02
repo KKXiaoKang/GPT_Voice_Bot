@@ -217,54 +217,6 @@ def remove_some_rules(word:str):
         # 如果没有匹配到，则返回原始字符串
         return word.strip()
     
-def main():
-    #openai.api_key = OPENAI_API_KEY
-    while True:
-        count = 0
-        player.playSoundList("speak")
-        player.waitForPlayer()
-        
-        with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
-            print("------------------- you can say something ------------------- ")
-            if count == 0:
-                
-                print("[Log] Audio initialization compelete.")
-
-                print("[Audio Device List]")
-                listAudioDevice(audio)
-                print()
-
-                print("[Measure Ambient Noise]")
-                calibrateEnergyThreashold(mic)
-                print()
-
-                print("[Start ChatGPT]")
-        
-            question = " "
-            question = voiceToText(audio=audio, mic=mic)
-            
-            a_result = type(question)
-            print(a_result)
-            print("> ", question)
-            if not question.strip():
-                print("没收到任何语音")
-
-            answer = askChatGPT(question)
-            answer = remove_some_rules(answer)
-            print(type(answer))
-            print(answer)
-            print()
-
-            audioFile = voiceSynthesis(
-                answer, SYNTHESIS_APPID, SYNTHESIS_API_KEY, SYNTHESIS_API_SECRET
-            )
-            player.playPcmFile(audioFile)
-
-            print("[Log] Dialog complete.")
-            input("Press Enter to continue...")
-        
-        count += 1
-
 # ---------------------------------- 状态层 ------------------------------------ # 
 def recordVoice():
     """
@@ -359,7 +311,7 @@ def voice_is_action():
     global robotState
 
     # 检索question里面是否包含了技能集的话语
-    
+
     # 最后要进行播放音乐
     robotState = PLAY_ANSWER
 
@@ -398,6 +350,5 @@ def doing_voice_job():
             break
 
 if __name__ == "__main__":
-    # main()
     doing_voice_job()
     pygame.quit()
