@@ -1,9 +1,5 @@
 # config microphone: Bothlent UAC Dongle: USB Audio (hw:1,0) inputchannel: 8
 # config speaker: 输入设备 ID  0  -  USB Audio Device: - (hw:0,0) inputchannel: 1
-
-
-
-
 import json
 import pyaudio
 import speech_recognition as sr
@@ -21,14 +17,8 @@ from audio_player import AudioPlayer
 from zhipuai import ZhipuAI
 import re
 
-client = ZhipuAI(
-    api_key = "d36a30c392305de3735e51ecdb536b42.o0GUdJVlEKH3lSNi"
-    #api_key ="419e54a6fcd665e02f27089c19feb7a3.4y2FVddBJBvuXJFM"
-    #api_key=os.environ["ZHIPUAI_API_KEY"]
-)
-
 configFile = configparser.ConfigParser()
-configFile.read("config.txt",encoding='utf-8')
+configFile.read("./config/config.txt",encoding='utf-8')
 config = dict(configFile.items("config"))
 
 #OPENAI_API_KEY = config["openai_api_key"]
@@ -43,6 +33,11 @@ SYNTHESIS_APPID = config["synthesis_app_id"]
 SYNTHESIS_API_KEY = config["synthesis_api_key"]
 SYNTHESIS_API_SECRET = config["synthesis_api_secret"]
 SYNTHESIS_FILE_PATH = "./temp/synthesis.pcm"
+
+ZHIPUAI_API_KEY = config["zhipuai_api_key"]
+client = ZhipuAI(
+    api_key = f"{ZHIPUAI_API_KEY}"
+)
 
 AUDIO_INPUT_DEVICE_INDEX = eval(config["audio_input_device_index"])
 AUDIO_INPUT_DEVICE_CHANNEL = 1
