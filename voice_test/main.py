@@ -7,6 +7,7 @@ import os
 import configparser
 import pygame
 import time
+import yaml
 
 from voice_record import recordVoice
 from voice_recognition import voiceRecognition
@@ -65,7 +66,21 @@ robotState = RECORD_STATE
 break_Sign = 0
 
 # 是否开启 技能集 配置
-abilities_flag = False
+abilities_flag = True
+
+# 读取 ability.yaml 文件
+def load_abilities(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        abilities = yaml.safe_load(file)
+    return abilities['abilities']
+
+# 检查 question 是否包含技能集的关键字
+def check_abilities(question, abilities):
+    for ability, keywords in abilities.items():
+        for keyword in keywords:
+            if keyword in question:
+                return ability
+    return None
 
 def recordVoiceSmart(mic: sr.Microphone, save_file="record.pcm", timeout=10):
     r = sr.Recognizer()
@@ -267,7 +282,7 @@ def noVoice():
     """
     global robotState
     print(" ---- robotState: 无语音之后的状态 ----------")
-    time.sleep(10)
+    time.sleep(15)
     robotState = RECORD_STATE
 
 def isVoice():
@@ -311,6 +326,20 @@ def voice_is_action():
     global robotState
 
     # 检索question里面是否包含了技能集的话语
+    abilities = load_abilities("./config/ability.yaml")
+    matched_ability = check_abilities(question, abilities)
+
+    if matched_ability:
+        # 匹配到技能集，执行技能集里面的固定动作/播放固定的语音
+        print(f"匹配到技能集: {matched_ability}")
+        answer = f"执行技能集: {matched_ability}"
+    else:
+        # 没匹配到技能集，直接走LLM问答进行语音交互
+        answer = askChatGPT(question)
+        answer = remove_some_rules(answer)
+        print(type(answer))
+        print(answer)
+        print()
 
     # 最后要进行播放音乐
     robotState = PLAY_ANSWER
