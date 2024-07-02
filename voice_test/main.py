@@ -226,32 +226,40 @@ def calibrateEnergyThreashold(mic: sr.Microphone):
     rec.adjust_for_ambient_noise(mic)
     print("energy_threashold: ", rec.energy_threshold)
 
+def remove_some_rules(word:str):
+    """
+    {role=assistant, content=珠穆朗玛峰，也被称为珠峰，是地球上最高的山峰，海拔高度为8,848.86米（根据2020年的测量数据）。它位于中国与尼泊尔边界的喜马拉雅山脉中。}
+    穆朗玛峰，又称珠穆朗玛峰，是世界上最高的山峰，位于中国与尼泊尔的边界上。它的海拔高度为8,848米。这座峰以其壮丽的自然风光和攀登挑战而闻名于世。
+    """
+    pass
+    
 def main():
     #openai.api_key = OPENAI_API_KEY
-    audio = pyaudio.PyAudio()
-    player = AudioPlayer()
-    
+    while True:
+        count = 0
+        audio = pyaudio.PyAudio()
+        player = AudioPlayer()
 
-    with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
+        time.sleep(2)
 
-        print("[Log] Audio initialization compelete.")
+        with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
+            if count == 0:
+                
+                print("[Log] Audio initialization compelete.")
 
-        print("[Audio Device List]")
-        listAudioDevice(audio)
-        print()
+                print("[Audio Device List]")
+                listAudioDevice(audio)
+                print()
 
-        print("[Measure Ambient Noise]")
-        calibrateEnergyThreashold(mic)
-        print()
+                print("[Measure Ambient Noise]")
+                calibrateEnergyThreashold(mic)
+                print()
 
-        print("[Start ChatGPT]")
-
-        while True:
+                print("[Start ChatGPT]")
+        
             player.playSoundList("speak")
             player.waitForPlayer()
-            
             # question = input("> ")
-            time.sleep(2)
             question = " "
             question = voiceToText(audio=audio, mic=mic)
             #question = "what is your name "
@@ -260,6 +268,8 @@ def main():
             print("> ", question)
 
             answer = askChatGPT(question)
+            new_answer = remove_some_rules(answer)
+            print(type(answer))
             print(answer)
             print()
 
@@ -270,6 +280,8 @@ def main():
 
             print("[Log] Dialog complete.")
             input("Press Enter to continue...")
+        
+        count += 1
         
 if __name__ == "__main__":
     main()

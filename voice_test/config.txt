@@ -10,6 +10,6 @@ synthesis_app_id = 5a65c514
 synthesis_api_key = 7271d8660d0a1f3d533f140cafd8876b
 synthesis_api_secret = ODY3ZmQwYTdhZGQxM2Q1NDIxNTQ3YzI1
 
-audio_input_device_index = 17
-audio_output_device_index = 17
+audio_input_device_index = 18
+audio_output_device_index = 14
 energy_threashold = 400
