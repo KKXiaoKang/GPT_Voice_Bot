@@ -17,6 +17,14 @@ from voice_recognition import voiceRecognition
 from voice_synthesis import voiceSynthesis
 from audio_device import listAudioDevice
 from audio_player import AudioPlayer
+from zhipuai import ZhipuAI
+import re
+
+client = ZhipuAI(
+    api_key = "d36a30c392305de3735e51ecdb536b42.o0GUdJVlEKH3lSNi"
+    #api_key ="419e54a6fcd665e02f27089c19feb7a3.4y2FVddBJBvuXJFM"
+    #api_key=os.environ["ZHIPUAI_API_KEY"]
+)
 
 configFile = configparser.ConfigParser()
 configFile.read("config.txt",encoding='utf-8')
@@ -43,6 +51,7 @@ ENERGY_THREASHOLD = int(config["energy_threashold"])
 RECORD_TIME = 7
 RECORD_WAV_PATH = "./temp/record.wav"
 
+text =[]
 
 def recordVoiceSmart(mic: sr.Microphone, save_file="record.pcm", timeout=10):
     r = sr.Recognizer()
@@ -78,45 +87,6 @@ def voiceToText(audio: pyaudio.PyAudio=None, mic: sr.Microphone=None, smart=True
 
     return recognition
 
-'''
-def askChatGPT(question: str):
-    os.environ["HTTP_PROXY"] = NETWORK_PROXY
-    os.environ["HTTPS_PROXY"] = NETWORK_PROXY
-
-    rsp = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "content_xxxxxx"},
-            {"role": "user", "content": question},
-        ],
-    )
-
-    os.environ.pop("HTTP_PROXY")
-    os.environ.pop("HTTPS_PROXY")
-
-    return rsp.get("choices")[0]["message"]["content"]
-
-'''
-
-##lyq_dev start 
-import SparkApi
-# #以下密钥信息从控制台获取
-# appid = "5a65c514"     #填写控制台中获取的 APPID 信息
-# api_secret = "ODY3ZmQwYTdhZGQxM2Q1NDIxNTQ3YzI1"   #填写控制台中获取的 APISecret 信息
-# api_key ="7271d8660d0a1f3d533f140cafd8876b"    #填写控制台中获取的 APIKey 信息
-
-# #用于配置大模型版本，默认“general/generalv2”
-# #domain = "general"   # v1.5版本
-# domain = "generalv2"    # v2.0版本
-# #云端环境的服务地址
-# #Spark_url = "ws://spark-api.xf-yun.com/v1.1/chat"  # v1.5环境的地址
-# Spark_url = "ws://spark-api.xf-yun.com/v2.1/chat"  # v2.0环境的地址
-
-
-text =[]
-
-# length = 0
-
 def getText(role,content):
     jsoncon = {}
     jsoncon["role"] = role
@@ -138,24 +108,8 @@ def checklen(text):
     return text
     
 
-from zhipuai import ZhipuAI
 
-client = ZhipuAI(
-    #api_key = "2ed622a64cd59489557bf88ab570bc1e.hdWhRouuja0IFy1S"
-    #api_key = "96a303b8a3befeb9149eb3ac94cde00b.oRbTSvV8oY2nrHRc"
-    #api_key = "073d8e599b11d4ccdaec7ede6c41b271.FrEKFwruHCrJkF1n"
-    api_key ="419e54a6fcd665e02f27089c19feb7a3.4y2FVddBJBvuXJFM"
-    #api_key=os.environ["ZHIPUAI_API_KEY"]
-)
 
-import re
-
-# def remove_chinese_symbols(s):
-#     # 定义中文符号的正则表达式
-#     chinese_symbols = r'[，。！？；：“”（）【】《》、]'
-#     # 使用正则表达式删除中文符号
-#     result = re.sub(chinese_symbols, '', s)
-#     return result
 def remove_periods(s: str):
     # 删除字符串中的所有句号
     s.replace('！', '')
@@ -216,7 +170,7 @@ def get_completion(prompt: str, model="glm-4", temperature=0.95):
 def askChatGPT(question: str):
     #Input = input("\n" +"我:")
     question = checklen(getText("user",question))
-    answer_zhipu = get_completion(question)    
+    answer_zhipu = get_completion(question, model="glm-4")    
 
     return answer_zhipu
 
@@ -228,10 +182,22 @@ def calibrateEnergyThreashold(mic: sr.Microphone):
 
 def remove_some_rules(word:str):
     """
-    {role=assistant, content=珠穆朗玛峰，也被称为珠峰，是地球上最高的山峰，海拔高度为8,848.86米（根据2020年的测量数据）。它位于中国与尼泊尔边界的喜马拉雅山脉中。}
-    穆朗玛峰，又称珠穆朗玛峰，是世界上最高的山峰，位于中国与尼泊尔的边界上。它的海拔高度为8,848米。这座峰以其壮丽的自然风光和攀登挑战而闻名于世。
+    返回的answer有两种形式，需要进行字符处理
+    [1]  {role=assistant, content=珠穆朗玛峰，也被称为珠峰，是地球上最高的山峰，海拔高度为8,848.86米（根据2020年的测量数据）。它位于中国与尼泊尔边界的喜马拉雅山脉中。}
+    [2]  珠穆朗玛峰，又称珠穆朗玛峰，是世界上最高的山峰，位于中国与尼泊尔的边界上。它的海拔高度为8,848米。这座峰以其壮丽的自然风光和攀登挑战而闻名于世。
     """
-    pass
+    # 定义匹配 {role=assistant, content=...} 的正则表达式
+    pattern = r'\{role=[^,]+, content=([^}]+)\}'
+    
+    # 使用正则表达式查找匹配的内容
+    match = re.search(pattern, word)
+    
+    if match:
+        # 如果匹配到，则返回 content 中的内容
+        return match.group(1).strip()
+    else:
+        # 如果没有匹配到，则返回原始字符串
+        return word.strip()
     
 def main():
     #openai.api_key = OPENAI_API_KEY
@@ -268,7 +234,7 @@ def main():
             print("> ", question)
 
             answer = askChatGPT(question)
-            new_answer = remove_some_rules(answer)
+            answer = remove_some_rules(answer)
             print(type(answer))
             print(answer)
             print()
