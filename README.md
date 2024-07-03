@@ -1,6 +1,6 @@
-# GPT_Voice_Bot
-a simple demo to talk to gpt each other
-
+# GPT_Voice_Bot（检索question关键字）
+* a simple demo to talk to gpt each other
+* 请注意，此版本GPT_Voice_Bot关于技能集的配置是通过检索question关键字进行配置
 
 ## 安装 SpeechRecognition | SpeechRecognition 3.10.4
 ```bash

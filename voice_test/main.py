@@ -7,6 +7,8 @@ import os
 import configparser
 import pygame
 import time
+import yaml
+import rospy
 
 from voice_record import recordVoice
 from voice_recognition import voiceRecognition
@@ -16,6 +18,9 @@ from audio_device import listAudioDevice
 from audio_player import AudioPlayer
 from zhipuai import ZhipuAI
 import re
+
+from abilities.action_control import action_control
+import asyncio
 
 configFile = configparser.ConfigParser()
 configFile.read("./config/config.txt",encoding='utf-8')
@@ -53,6 +58,33 @@ question = " "
 answer = " "
 audio = pyaudio.PyAudio()
 player = AudioPlayer()
+
+# robot action state
+RECORD_STATE = 0  # 录音状态
+VOICE_NULL = 1    # 无语音之后的状态
+VOICE_FULL = 2    # 有语音之后的状态（检索）
+ACTION_NO = 3    # 有语音之后的状态，检索没有技能集需要实现
+ACTION_IS = 4    # 有语音之后的状态，检索有技能集需要实现
+PLAY_ANSWER = 5  # 播放语音
+robotState = RECORD_STATE
+break_Sign = 0
+
+# 是否开启 技能集 配置
+abilities_flag = True
+
+# 读取 ability.yaml 文件
+def load_abilities(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        abilities = yaml.safe_load(file)
+    return abilities['abilities']
+
+# 检查 question 是否包含技能集的关键字
+def check_abilities(question, abilities):
+    for ability, keywords in abilities.items():
+        for keyword in keywords:
+            if keyword in question:
+                return ability, keyword
+    return None, None
 
 def recordVoiceSmart(mic: sr.Microphone, save_file="record.pcm", timeout=10):
     r = sr.Recognizer()
@@ -204,54 +236,164 @@ def remove_some_rules(word:str):
         # 如果没有匹配到，则返回原始字符串
         return word.strip()
     
-def main():
-    #openai.api_key = OPENAI_API_KEY
-    while True:
-        count = 0
-        player.playSoundList("speak")
-        player.waitForPlayer()
-        
-        with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
-            print("------------------- you can say something ------------------- ")
-            if count == 0:
-                
-                print("[Log] Audio initialization compelete.")
+# ---------------------------------- 状态层 ------------------------------------ # 
+def recordVoice():
+    """
+        录制音频状态
+    """
+    global question
+    global count
+    global robotState
 
-                print("[Audio Device List]")
-                listAudioDevice(audio)
-                print()
+    player.playSoundList("speak")
+    player.waitForPlayer()
 
-                print("[Measure Ambient Noise]")
-                calibrateEnergyThreashold(mic)
-                print()
+    with sr.Microphone(AUDIO_INPUT_DEVICE_INDEX, 16000) as mic:
+        if count == 0:
+            print("[Log] Audio initialization compelete.")
 
-                print("[Start ChatGPT]")
-        
-            question = " "
-            question = voiceToText(audio=audio, mic=mic)
-            
-            a_result = type(question)
-            print(a_result)
-            print("> ", question)
-            if not question.strip():
-                print("没收到任何语音")
-
-            answer = askChatGPT(question)
-            answer = remove_some_rules(answer)
-            print(type(answer))
-            print(answer)
+            print("[Audio Device List]")
+            listAudioDevice(audio)
             print()
 
-            audioFile = voiceSynthesis(
-                answer, SYNTHESIS_APPID, SYNTHESIS_API_KEY, SYNTHESIS_API_SECRET
-            )
-            player.playPcmFile(audioFile)
+            print("[Measure Ambient Noise]")
+            calibrateEnergyThreashold(mic)
+            print()
 
-            print("[Log] Dialog complete.")
-            input("Press Enter to continue...")
+            print("[Start ChatGPT]")         
+
+        # 先清空，然后转语音
+        question = " "
+        question = voiceToText(audio=audio, mic=mic)
+        a_result = type(question)
+        print(a_result)
+        print("> ", question)
         
-        count += 1
+        # 切换状态
+        if not question.strip():
+            print(" -- 没收到任何语音 -- ")
+            robotState = VOICE_NULL
+        else:
+            print(" --  接收到语音  -- ")
+            robotState = VOICE_FULL
+
+    # 打印设备列表计数器
+    count += 1
+
+def noVoice():
+    """
+        无语音之后的状态
+    """
+    global robotState
+    print(" ---- robotState: 无语音之后的状态 ----------")
+    time.sleep(15)
+    robotState = RECORD_STATE
+
+def isVoice():
+    """
+        有语音的状态
+    """
+    global question
+    global abilities_flag
+    global robotState
+    print(" ---- robotState: 有语音的状态 (检索是否包含技能集) ----------")
+    
+    if abilities_flag:
+        print("开启人机交互 | 技能集配置 | 语音交互")
+        robotState = ACTION_IS
+    else:
+        print("开启人机交互 | 语音交互")
+        robotState = ACTION_NO
+
+def voice_no_action():
+    """
+        有语音之后的状态，检索没有技能集需要实现
+    """
+    global question
+    global answer
+    global robotState
+
+    answer = askChatGPT(question)
+    answer = remove_some_rules(answer)
+    print(type(answer))
+    print(answer)
+    print()
+
+    # 文本转语音合成
+    robotState = PLAY_ANSWER
+
+async def run_action_control(ability_name: str):
+    await action_control(ability_name)
+
+def voice_is_action():
+    """
+        有语音之后的状态，检索有技能集需要实现
+    """
+    global question
+    global answer
+    global robotState
+
+    # 检索question里面是否包含了技能集的话语
+    abilities = load_abilities("./config/ability.yaml")
+    matched_ability, matched_keyword = check_abilities(question, abilities)
+
+    if matched_ability:
+        # 匹配到技能集，执行技能集里面的固定动作/播放固定的语音
+        print(f"匹配到技能集: {matched_ability}，关键字: {matched_keyword}")
+        asyncio.create_task(run_action_control(matched_ability))
+        answer = f"好啊，让我们一起{matched_keyword}吧"
+    else:
+        # 没匹配到技能集，直接走LLM问答进行语音交互
+        answer = askChatGPT(question)
+        answer = remove_some_rules(answer)
+        print(type(answer))
+        print(answer)
+        print()
+
+    # 文本转语音合成
+    robotState = PLAY_ANSWER
+
+def voice_play_answer():
+    global robotState
+    global answer
+    global player
+
+    audioFile = voiceSynthesis(
+        answer, SYNTHESIS_APPID, SYNTHESIS_API_KEY, SYNTHESIS_API_SECRET
+    )
+    player.playPcmFile(audioFile)
+
+    print("[Log] Dialog complete.")
+    input("Press Enter to continue...")
+
+    robotState = RECORD_STATE
+
+stateActionMap = {
+    RECORD_STATE:recordVoice,    # 录制语音(检索)
+    VOICE_NULL:noVoice,          # 无语音之后的状态
+    VOICE_FULL:isVoice,          # 有语音之后的状态（检索）
+    ACTION_NO:voice_no_action,   # 有语音之后的状态，检索没有技能集需要实现
+    ACTION_IS:voice_is_action,   # 有语音之后的状态，检索有技能集需要实现
+    PLAY_ANSWER:voice_play_answer  # 播放语音
+}
+
+async def doing_voice_job():
+    global robotState
+    global break_Sign
+    while not rospy.is_shutdown():
+        # 动作空间执行
+        stateActionMap.get(robotState)()
+        # 全局退出
+        if break_Sign == 1:
+            break
+        await asyncio.sleep(0.1)  # 防止阻塞事件循环
+
+async def main():
+    await doing_voice_job()
+    pygame.quit()
+
 
 if __name__ == "__main__":
-    main()
-    pygame.quit()
+    rospy.init_node('kuavo_robot_Embodied_AInode')
+    asyncio.run(main())
+
