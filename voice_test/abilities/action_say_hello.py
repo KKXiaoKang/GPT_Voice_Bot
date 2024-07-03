@@ -15,15 +15,11 @@ from .kuavoRobotSDK import kuavo
 csv_data = {
     'welcome': [
         "hand_pose0 1.5 20 0 0 -30 0 0 0 -60 -15 -18 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose1 3 20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose2 4 20 0 0 -30 0 0 0 -60 -15 -18 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose3 5 20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose4 6 20 0 0 -30 0 0 0 -60 -15 -18 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose5 7 20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose6 8 20 0 0 -30 0 0 0 -60 -15 -18 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose7 9 20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose9 10 20 10 0 -30 0 0 0 20 -10 0 -30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
-        "hand_pose8 11 20 0 0 -30 0 0 0 20 0 0 -30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+        "hand_pose1 3   20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
+        "hand_pose2 4   20 0 0 -30 0 0 0 -60 -15 -18 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
+        "hand_pose3 5   20 0 0 -30 0 0 0 -60 -15 35 -88 88 5 -20 0 0 0 0 0 0 0 0 0 0 0 0",
+        "hand_pose4 6   20 10 0 -30 0 0 0 20 -10 0 -30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0",
+        "hand_pose5 7   20 0 0 -30 0 0 0 20 0 0 -30 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
     ]
 }
 
@@ -41,7 +37,6 @@ def test_arm_welcome(robot_instance):
         kuavo -- 手部 /kuavo_arm_target_poses 控制
     """
     data = csv_data['welcome']
-    print("data:",data)
     time_data, traj_array = parse_csv_data(data)
     robot_instance.pub_kuavo_arm_with_time(time_data, traj_array)
     print("robot arm traj publisher finish")

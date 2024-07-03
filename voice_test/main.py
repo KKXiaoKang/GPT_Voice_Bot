@@ -215,7 +215,7 @@ def askChatGPT(question: str):
     prompt_text = read_prompt_from_file(prompt_file)
 
     # 将 question 和 prompt 组合成消息格式
-    combined_prompt = f"{prompt_text}{question} "
+    combined_prompt = f"{prompt_text}, 我现在要问你的问题是 {question} "
     question_data = checklen(getText("user", combined_prompt))
 
     # 调用 get_completion() 函数
