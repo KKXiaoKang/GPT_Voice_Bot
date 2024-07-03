@@ -2,7 +2,7 @@ abilities:
   action_say_hello:
     - "来挥手"
     - "来挥个手"
-    - "来打个招呼"
+    - "来打招呼"
   action_give_five:
     - "来击掌"
     - "来击个掌"
