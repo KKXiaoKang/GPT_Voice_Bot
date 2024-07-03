@@ -56,12 +56,11 @@ def test_arm_give_five(robot_instance):
 )
 async def give_five(obj_name: str):
     print("调用了give_five函数")
-
     # 初始化机器人
     robot_instance = kuavo("3_7_kuavo")
     
-    # 发送
-    robot_instance.set_robot_arm_ctl_mode(True)
+    # 等待1s
+    time.sleep(1)
     
     # 机器人做动作
     test_arm_give_five(robot_instance)

@@ -322,6 +322,9 @@ def voice_no_action():
     # 文本转语音合成
     robotState = PLAY_ANSWER
 
+async def run_action_control(ability_name: str):
+    await action_control(ability_name)
+
 def voice_is_action():
     """
         有语音之后的状态，检索有技能集需要实现
@@ -337,7 +340,7 @@ def voice_is_action():
     if matched_ability:
         # 匹配到技能集，执行技能集里面的固定动作/播放固定的语音
         print(f"匹配到技能集: {matched_ability}，关键字: {matched_keyword}")
-        asyncio.run(action_control(f"{matched_ability}"))
+        asyncio.create_task(run_action_control(matched_ability))
         answer = f"好啊，让我们一起{matched_keyword}吧"
     else:
         # 没匹配到技能集，直接走LLM问答进行语音交互
@@ -374,7 +377,7 @@ stateActionMap = {
     PLAY_ANSWER:voice_play_answer  # 播放语音
 }
 
-def doing_voice_job():
+async def doing_voice_job():
     global robotState
     global break_Sign
     while not rospy.is_shutdown():
@@ -383,8 +386,14 @@ def doing_voice_job():
         # 全局退出
         if break_Sign == 1:
             break
+        await asyncio.sleep(0.1)  # 防止阻塞事件循环
+
+async def main():
+    await doing_voice_job()
+    pygame.quit()
+
 
 if __name__ == "__main__":
     rospy.init_node('kuavo_robot_Embodied_AInode')
-    doing_voice_job()
-    pygame.quit()
+    asyncio.run(main())
+

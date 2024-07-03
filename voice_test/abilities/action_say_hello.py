@@ -65,8 +65,8 @@ async def say_hello(obj_name: str):
     # 初始化机器人
     robot_instance = kuavo("3_7_kuavo")
     
-    # 发送
-    robot_instance.set_robot_arm_ctl_mode(True)
+    # 等待1s
+    time.sleep(1)
 
     # 机器人做动作
     test_arm_welcome(robot_instance)

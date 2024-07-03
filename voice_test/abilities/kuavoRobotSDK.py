@@ -104,6 +104,10 @@ class kuavo:
         self._arm_traj_pub.publish(arm_traj_msg)
     
     def pub_kuavo_arm_with_time(self, time, traj_jointstate):
+        """
+            publisher arm Target Pose
+        """
+        print("publisher arm Target Pose")
         arm_traj_msg = armTargetPoses()
         arm_traj_msg.times = time
         arm_traj_msg.values = traj_jointstate
