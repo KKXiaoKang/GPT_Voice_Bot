@@ -4,5 +4,7 @@ SpeechRecognition
 gpiozero
 pigpio
 pygame
-numpy
+numpy==1.20.3 
 opencv-python
+websocket
+zhipuai
