@@ -359,7 +359,8 @@ def voice_is_action():
         # 匹配到技能集，执行技能集里面的固定动作/播放固定的语音
         print(f"匹配到技能集: {matched_ability}，关键字: {matched_keyword}")
         asyncio.create_task(run_action_control(matched_ability))
-        answer = f"好啊，我给大家{matched_keyword}吧"
+        answer = str(f"好啊，我给大家{matched_keyword}吧")
+        print(" 匹配到技能集，执行技能集 answer type : " ,type(answer))
     else:
         # 没匹配到技能集，直接走LLM问答进行语音交互
         answer = askChatGPT(question)
