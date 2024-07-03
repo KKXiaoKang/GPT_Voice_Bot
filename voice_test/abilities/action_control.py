@@ -34,6 +34,6 @@ async def action_control(obj_name: str):
 
     # action detect
     if obj_name == "action_say_hello":
-        say_hello("机器人打招呼")
+        await say_hello("机器人打招呼")
     elif obj_name == "action_give_five":
-        give_five("机器人击掌")
+        await give_five("机器人击掌")

@@ -8,6 +8,7 @@ import configparser
 import pygame
 import time
 import yaml
+import rospy
 
 from voice_record import recordVoice
 from voice_recognition import voiceRecognition
@@ -318,6 +319,7 @@ def voice_no_action():
     print(answer)
     print()
 
+    # 文本转语音合成
     robotState = PLAY_ANSWER
 
 def voice_is_action():
@@ -345,7 +347,7 @@ def voice_is_action():
         print(answer)
         print()
 
-    # 最后要进行播放音乐
+    # 文本转语音合成
     robotState = PLAY_ANSWER
 
 def voice_play_answer():
@@ -375,7 +377,7 @@ stateActionMap = {
 def doing_voice_job():
     global robotState
     global break_Sign
-    while True:
+    while not rospy.is_shutdown():
         # 动作空间执行
         stateActionMap.get(robotState)()
         # 全局退出
@@ -383,5 +385,6 @@ def doing_voice_job():
             break
 
 if __name__ == "__main__":
+    rospy.init_node('kuavo_robot_Embodied_AInode')
     doing_voice_job()
     pygame.quit()
