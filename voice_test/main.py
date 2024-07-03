@@ -18,6 +18,9 @@ from audio_player import AudioPlayer
 from zhipuai import ZhipuAI
 import re
 
+from abilities.action_control import action_control
+import asyncio
+
 configFile = configparser.ConfigParser()
 configFile.read("./config/config.txt",encoding='utf-8')
 config = dict(configFile.items("config"))
@@ -79,8 +82,8 @@ def check_abilities(question, abilities):
     for ability, keywords in abilities.items():
         for keyword in keywords:
             if keyword in question:
-                return ability
-    return None
+                return ability, keyword
+    return None, None
 
 def recordVoiceSmart(mic: sr.Microphone, save_file="record.pcm", timeout=10):
     r = sr.Recognizer()
@@ -327,12 +330,13 @@ def voice_is_action():
 
     # 检索question里面是否包含了技能集的话语
     abilities = load_abilities("./config/ability.yaml")
-    matched_ability = check_abilities(question, abilities)
+    matched_ability, matched_keyword = check_abilities(question, abilities)
 
     if matched_ability:
         # 匹配到技能集，执行技能集里面的固定动作/播放固定的语音
-        print(f"匹配到技能集: {matched_ability}")
-        answer = f"执行技能集: {matched_ability}"
+        print(f"匹配到技能集: {matched_ability}，关键字: {matched_keyword}")
+        asyncio.run(action_control(f"{matched_ability}"))
+        answer = f"好啊，让我们一起{matched_keyword}吧"
     else:
         # 没匹配到技能集，直接走LLM问答进行语音交互
         answer = askChatGPT(question)
