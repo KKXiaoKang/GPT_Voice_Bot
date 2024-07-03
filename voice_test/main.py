@@ -145,6 +145,11 @@ def checklen(text):
     return text
     
 
+# 读取 prompt 文件
+def read_prompt_from_file(prompt_file):
+    with open(prompt_file, 'r', encoding='utf-8') as f:
+        prompt_text = f.read().strip()
+    return prompt_text
 
 
 def remove_periods(s: str):
@@ -205,9 +210,16 @@ def get_completion(prompt: str, model="glm-4", temperature=0.95):
     return "generate answer error"
 
 def askChatGPT(question: str):
-    #Input = input("\n" +"我:")
-    question = checklen(getText("user",question))
-    answer_zhipu = get_completion(question, model="glm-4")    
+    # 读取 prompt 文件的内容
+    prompt_file = "./prompt/prompt.txt"
+    prompt_text = read_prompt_from_file(prompt_file)
+
+    # 将 question 和 prompt 组合成消息格式
+    combined_prompt = f"{prompt_text}{question} "
+    question_data = checklen(getText("user", combined_prompt))
+
+    # 调用 get_completion() 函数
+    answer_zhipu = get_completion(question_data, model="glm-4")
 
     return answer_zhipu
 
@@ -217,11 +229,11 @@ def calibrateEnergyThreashold(mic: sr.Microphone):
     rec.adjust_for_ambient_noise(mic)
     print("energy_threashold: ", rec.energy_threshold)
 
-def remove_some_rules(word:str):
+def remove_some_rules(word: str):
     """
-    返回的answer有两种形式，需要进行字符处理
-    [1]  {role=assistant, content=珠穆朗玛峰，也被称为珠峰，是地球上最高的山峰，海拔高度为8,848.86米（根据2020年的测量数据）。它位于中国与尼泊尔边界的喜马拉雅山脉中。}
-    [2]  珠穆朗玛峰，又称珠穆朗玛峰，是世界上最高的山峰，位于中国与尼泊尔的边界上。它的海拔高度为8,848米。这座峰以其壮丽的自然风光和攀登挑战而闻名于世。
+    返回的 answer 有两种形式，需要进行字符处理
+    [1] {role=assistant, content=珠穆朗玛峰，也被称为珠峰，是地球上最高的山峰，海拔高度为8,848.86米（根据2020年的测量数据）。它位于中国与尼泊尔边界的喜马拉雅山脉中。}
+    [2] 珠穆朗玛峰，又称珠穆朗玛峰，是世界上最高的山峰，位于中国与尼泊尔的边界上。它的海拔高度为8,848米。这座峰以其壮丽的自然风光和攀登挑战而闻名于世。
     """
     # 定义匹配 {role=assistant, content=...} 的正则表达式
     pattern = r'\{role=[^,]+, content=([^}]+)\}'
@@ -231,10 +243,16 @@ def remove_some_rules(word:str):
     
     if match:
         # 如果匹配到，则返回 content 中的内容
-        return match.group(1).strip()
+        cleaned_word = match.group(1).strip()
     else:
         # 如果没有匹配到，则返回原始字符串
-        return word.strip()
+        cleaned_word = word.strip()
+    
+    # 移除一些特殊符号，如*号
+    cleaned_word = cleaned_word.replace('*', '')
+    cleaned_word = cleaned_word.replace('**', '')  # 如果有连续的*号，也一并移除
+    
+    return cleaned_word
     
 # ---------------------------------- 状态层 ------------------------------------ # 
 def recordVoice():
