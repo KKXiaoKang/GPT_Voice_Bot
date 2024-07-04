@@ -12,8 +12,9 @@ from .registry import ability
 from .utils import Replay
 from .kuavoRobotSDK import kuavo
 
-from .action_give_five import give_five
-from .action_say_hello import say_hello
+from .action_give_five  import give_five
+from .action_say_hello  import say_hello
+from .action_click_like import click_like
 import asyncio
 
 @ability(
@@ -37,3 +38,5 @@ async def action_control(obj_name: str):
         await say_hello("机器人打招呼")
     elif obj_name == "action_give_five":
         await give_five("机器人击掌")
+    elif obj_name == "action_click_like":
+        await click_like("机器人点赞")
