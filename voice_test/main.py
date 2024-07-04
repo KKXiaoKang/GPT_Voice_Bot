@@ -219,7 +219,7 @@ def askChatGPT(question: str):
     question_data = checklen(getText("user", combined_prompt))
 
     # 调用 get_completion() 函数
-    answer_zhipu = get_completion(question_data, model="glm-4")
+    answer_zhipu = get_completion(question_data, model="glm-4-0520")
 
     return answer_zhipu
 
