@@ -255,7 +255,7 @@ def remove_some_rules(word: str):
     return cleaned_word
     
 # ---------------------------------- 状态层 ------------------------------------ # 
-def recordVoice():
+def recordVoice_wav():
     """
         录制音频状态
     """
@@ -388,7 +388,7 @@ def voice_play_answer():
     robotState = RECORD_STATE
 
 stateActionMap = {
-    RECORD_STATE:recordVoice,    # 录制语音(检索)
+    RECORD_STATE:recordVoice_wav,    # 录制语音(检索)
     VOICE_NULL:noVoice,          # 无语音之后的状态
     VOICE_FULL:isVoice,          # 有语音之后的状态（检索）
     ACTION_NO:voice_no_action,   # 有语音之后的状态，检索没有技能集需要实现
