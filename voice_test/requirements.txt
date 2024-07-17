@@ -6,3 +6,6 @@ pigpio
 pygame
 numpy
 opencv-python
+websocket
+zhipuai
+websockets
